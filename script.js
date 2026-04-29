@@ -147,6 +147,23 @@ async function loadDailyLog(selectedDate) {
     }
 }
 
+// ADD THIS TO THE TOP OF YOUR 'recordForm' SUBMIT LISTENER
+const farmer_id = document.getElementById('farmerSelect').value;
+const today = new Date().toISOString().split('T')[0];
+
+// 1. Check if farmer already has a record today
+const { data: existing } = await _supabase
+    .from('daily_records')
+    .select('id')
+    .eq('farmer_id', farmer_id)
+    .eq('date_recorded', today);
+
+if (existing && existing.length > 0) {
+    alert("Record already exists for this farmer today! Please use the 'Edit' button below to change the weight.");
+    return; // This stops the code from saving a duplicate
+}
+
+
 // 3. Update the Submit Logic in the form listener
 // Change this line inside your recordForm.addEventListener:
 if (!error) {
