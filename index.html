@@ -61,6 +61,17 @@
             <ul id="manageFarmersList" class="manage-list"></ul>
         </div>
 
+<div class="card border-top-green">
+    <h3>⚙️ Business Settings</h3>
+    <div class="flex-row">
+        <label>Price per KG (Ksh):</label>
+        <input type="number" id="priceSetting" value="8" style="width: 80px;">
+        <button onclick="saveSettings()" class="btn-primary" style="width: auto; padding: 10px;">Update Price</button>
+    </div>
+    <p style="font-size: 12px; color: #666; text-align: center;">Changing this updates all "Payable" calculations.</p>
+</div>
+
+
         <div class="card" id="printArea">
             <h3>💰 Monthly Summary (Ksh 8/kg)</h3>
             <div class="month-label-container">
