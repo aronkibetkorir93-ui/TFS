@@ -1,142 +1,106 @@
-// CONFIGURATION - Your Supabase Credentials
-const SUB_URL = 'https://ilohlmmbgwywulojiadd.supabase.co'; // Extracted from your token
+const SUB_URL = 'https://ilohlmmbgwywulojiadd.supabase.co';
 const SUB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsb2hsbW1iZ3d5d3Vsb2ppYWRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.LIx-wCr_P4tcF-lw7Lo7FvCzWw2ScmpyMvlx-BgoGgY';
 const _supabase = supabase.createClient(SUB_URL, SUB_KEY);
 
-// LOGIN LOGIC
 async function handleLogin() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    
-    // Attempt to sign in
-    const { data, error } = await _supabase.auth.signInWithPassword({ 
-        email: email, 
-        password: password 
-    });
-    
-    if (error) {
-        alert("Login Failed: " + error.message);
-    } else {
+    const { error } = await _supabase.auth.signInWithPassword({ email, password });
+    if (error) alert(error.message);
+    else {
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         initApp();
     }
 }
 
-async function handleLogout() {
-    await _supabase.auth.signOut();
-    location.reload();
-}
+async function handleLogout() { await _supabase.auth.signOut(); location.reload(); }
 
-// INITIALIZE APP
 async function initApp() {
     const now = new Date();
-    // Display current month and year (e.g., April 2026)
     document.getElementById('currentMonthLabel').innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-    
-    await fetchFarmers();
-    await loadEarnings();
+    fetchFarmers();
+    loadEarnings();
+    renderManageList();
 }
 
-// ADD NEW FARMER
 async function addNewFarmer() {
-    const nameInput = document.getElementById('newFarmerName');
-    const name = nameInput.value.trim();
-    if (!name) return alert("Please enter a farmer's name");
-
-    const { error } = await _supabase.from('farmers').insert([{ name: name }]);
-    
-    if (error) {
-        alert("Error: " + error.message);
-    } else {
-        nameInput.value = '';
-        await fetchFarmers();
-        alert(name + " added to the system!");
+    const name = document.getElementById('newFarmerName').value.trim();
+    if (!name) return;
+    const { error } = await _supabase.from('farmers').insert([{ name }]);
+    if (!error) {
+        document.getElementById('newFarmerName').value = '';
+        initApp();
     }
 }
 
-// FETCH FARMERS FOR DROPDOWN
 async function fetchFarmers() {
-    const { data: farmers, error } = await _supabase
-        .from('farmers')
-        .select('*')
-        .order('name', { ascending: true });
-
-    if (error) return console.error(error);
-
+    const { data: farmers } = await _supabase.from('farmers').select('*').order('name');
     const select = document.getElementById('farmerSelect');
     select.innerHTML = '<option value="">Select Farmer</option>';
-    
     farmers.forEach(f => {
-        let opt = document.createElement('option');
-        opt.value = f.id; 
-        opt.textContent = f.name;
-        select.appendChild(opt);
+        select.innerHTML += `<option value="${f.id}">${f.name}</option>`;
     });
 }
 
-// SAVE DAILY RECORD
 document.getElementById('recordForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const farmer_id = document.getElementById('farmerSelect').value;
     const kg_collected = document.getElementById('kgInput').value;
-
-    const { error } = await _supabase.from('daily_records').insert([
-        { farmer_id: farmer_id, kg_collected: parseFloat(kg_collected) }
-    ]);
-
-    if (error) {
-        alert("Error saving record: " + error.message);
-    } else {
+    const { error } = await _supabase.from('daily_records').insert([{ farmer_id, kg_collected }]);
+    if (!error) {
         document.getElementById('kgInput').value = '';
-        await loadEarnings();
-        alert("Tea weight saved successfully!");
+        loadEarnings();
+        alert("Saved!");
     }
 });
 
-// LOAD AND CALCULATE EARNINGS
 async function loadEarnings() {
     const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
-
-    const { data, error } = await _supabase
-        .from('monthly_farmer_earnings')
-        .select('*')
-        .eq('month_num', currentMonth)
-        .eq('year_num', currentYear);
-
-    if (error) {
-        console.error("View Error:", error.message);
-        return;
-    }
-
+    const { data } = await _supabase.from('monthly_farmer_earnings')
+        .select('*').eq('month_num', now.getMonth() + 1).eq('year_num', now.getFullYear());
     const tbody = document.getElementById('earningsBody');
     tbody.innerHTML = '';
-    
     data.forEach(row => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${row.farmer_name}</td>
-                <td>${row.total_kg} kg</td>
-                <td>Ksh ${Number(row.total_earnings_ksh).toLocaleString()}</td>
-            </tr>`;
+        tbody.innerHTML += `<tr><td>${row.farmer_name}</td><td>${row.total_kg} kg</td><td>Ksh ${row.total_earnings_ksh.toLocaleString()}</td></tr>`;
     });
 }
 
-// DOWNLOAD REPORT AS IMAGE
+async function renderManageList() {
+    const { data: farmers } = await _supabase.from('farmers').select('*').order('name');
+    const list = document.getElementById('manageFarmersList');
+    list.innerHTML = '';
+    farmers.forEach(f => {
+        list.innerHTML += `<li class="manage-item"><span>${f.name}</span><div>
+            <button onclick="editToday('${f.id}', '${f.name}')" class="btn-edit">Edit Today</button>
+            <button onclick="deleteFarmer('${f.id}', '${f.name}')" class="btn-del">Del</button>
+        </div></li>`;
+    });
+}
+
+async function editToday(fId, name) {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await _supabase.from('daily_records').select('*').eq('farmer_id', fId).eq('date_recorded', today);
+    if (data.length === 0) return alert("No record for today.");
+    const newKg = prompt(`Edit KG for ${name}:`, data[0].kg_collected);
+    if (newKg) {
+        await _supabase.from('daily_records').update({ kg_collected: newKg }).eq('id', data[0].id);
+        loadEarnings();
+    }
+}
+
+async function deleteFarmer(id, name) {
+    if (confirm(`Delete ${name}?`)) {
+        await _supabase.from('farmers').delete().eq('id', id);
+        initApp();
+    }
+}
+
 document.getElementById('downloadBtn').addEventListener('click', () => {
-    const element = document.getElementById('printArea');
-    
-    // Ensure the background is white for the screenshot
-    html2canvas(element, { 
-        backgroundColor: "#ffffff",
-        scale: 2 
-    }).then(canvas => {
+    html2canvas(document.getElementById('printArea'), { scale: 2 }).then(canvas => {
         const link = document.createElement('a');
-        const timestamp = new Date().toISOString().split('T')[0];
-        link.download = `Tea-Report-${timestamp}.png`;
-        link.href = canvas.toDataURL("image/png");
+        link.download = `Tea-Report.png`;
+        link.href = canvas.toDataURL();
         link.click();
     });
 });
