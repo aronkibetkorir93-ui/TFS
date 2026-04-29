@@ -95,6 +95,68 @@ async function deleteFarmer(id, name) {
         initApp();
     }
 }
+// 1. Update initApp to set default date and listener
+async function initApp() {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    
+    const dateInput = document.getElementById('dateFilter');
+    dateInput.value = today; // Set default to today
+    
+    // Listen for date changes
+    dateInput.addEventListener('change', () => {
+        loadDailyLog(dateInput.value);
+    });
+
+    document.getElementById('currentMonthLabel').innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+    
+    fetchFarmers();
+    loadEarnings();        // Monthly summary keeps accumulating
+    loadDailyLog(today);   // Load today's records by default
+    renderManageList();
+}
+
+// 2. Updated Daily Log function to accept a specific date
+async function loadDailyLog(selectedDate) {
+    const { data, error } = await _supabase
+        .from('daily_records')
+        .select(`
+            id,
+            kg_collected,
+            created_at,
+            farmers ( name )
+        `)
+        .eq('date_recorded', selectedDate)
+        .order('created_at', { ascending: false });
+
+    const tbody = document.getElementById('dailyLogBody');
+    tbody.innerHTML = '';
+
+    if (data && data.length > 0) {
+        data.forEach(record => {
+            const time = new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            tbody.innerHTML += `
+                <tr>
+                    <td>${record.farmers.name}</td>
+                    <td>${record.kg_collected} kg</td>
+                    <td style="color: #888; font-size: 12px;">${time}</td>
+                </tr>`;
+        });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">No records for this date.</td></tr>';
+    }
+}
+
+// 3. Update the Submit Logic in the form listener
+// Change this line inside your recordForm.addEventListener:
+if (!error) {
+    document.getElementById('kgInput').value = '';
+    const currentDateView = document.getElementById('dateFilter').value;
+    loadEarnings(); 
+    loadDailyLog(currentDateView); // Refresh the view for the currently selected date
+    alert("Record Saved!");
+}
+
 
 document.getElementById('downloadBtn').addEventListener('click', () => {
     html2canvas(document.getElementById('printArea'), { scale: 2 }).then(canvas => {
