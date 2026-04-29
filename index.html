@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tea Management System</title>
+    <title>Mum's Tea System</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="loginOverlay" class="overlay">
-        <div class="card">
-            <h2 style="color: #2d5a27;">Tea System Login</h2>
-            <p style="font-size: 12px; color: #666; text-align: center;">Enter your email and password to manage tea records.</p>
+        <div class="login-card">
+            <div class="icon-circle">🌿</div>
+            <h2>Tea Farming System</h2>
+            <p>Welcome back! Please login.</p>
             <input type="email" id="email" placeholder="Email (e.g. mum@gmail.com)">
             <input type="password" id="password" placeholder="Password">
             <button onclick="handleLogin()" class="btn-primary">Login to Dashboard</button>
@@ -18,21 +19,21 @@
     </div>
 
     <div id="mainApp" style="display:none;">
-        <header>
-            <h1>Tea Farming Hub</h1>
+        <header class="app-header">
+            <h1>🍵 Tea Farming Hub</h1>
             <button onclick="handleLogout()" class="btn-logout">Logout</button>
         </header>
 
-        <div class="card">
-            <h3>Register New Farmer</h3>
+        <div class="card border-top-green">
+            <h3>👤 Register New Farmer</h3>
             <div class="flex-row">
                 <input type="text" id="newFarmerName" placeholder="Full Name">
                 <button onclick="addNewFarmer()" class="btn-primary" style="width: auto;">Add</button>
             </div>
         </div>
 
-        <div class="card">
-            <h3>Record Daily Delivery</h3>
+        <div class="card border-top-green">
+            <h3>⚖️ Record Daily Delivery</h3>
             <form id="recordForm">
                 <select id="farmerSelect" required><option value="">Select Farmer</option></select>
                 <input type="number" id="kgInput" step="0.1" placeholder="Enter KG" required>
@@ -41,36 +42,38 @@
         </div>
 
         <div class="card">
-            <h3>Daily Ledger</h3>
-            <div class="flex-row" style="margin-bottom: 10px;">
-                <label>Date:</label>
-                <input type="date" id="dateFilter">
+            <h3>📅 Daily Records Ledger</h3>
+            <div class="flex-row" style="margin-bottom: 10px; justify-content: center;">
+                <label style="font-weight: bold; color: #2d5a27;">Select Date:</label>
+                <input type="date" id="dateFilter" style="width: 60%;">
             </div>
-            <div id="dailyPrintArea" style="background: white; padding: 10px;">
-                <table id="dailyTable">
+            <div id="dailyPrintArea" class="print-container">
+                <table id="dailyTable" class="styled-table">
                     <thead><tr><th>Farmer</th><th>KG</th><th>Time</th></tr></thead>
                     <tbody id="dailyLogBody"></tbody>
                 </table>
             </div>
-            <button id="downloadDailyBtn" class="btn-secondary" style="margin-top:10px; background: #2d5a27;">Download Daily Image</button>
+            <button id="downloadDailyBtn" class="btn-secondary">📸 Download Daily Image</button>
         </div>
 
         <div class="card">
-            <h3>Manage & Edit Today</h3>
+            <h3>⚙️ Manage & Edit Records</h3>
             <ul id="manageFarmersList" class="manage-list"></ul>
         </div>
 
         <div class="card" id="printArea">
-            <h3>Monthly Summary (Ksh 8/kg)</h3>
-            <p id="currentMonthLabel" class="month-label"></p>
-            <table>
+            <h3>💰 Monthly Summary (Ksh 8/kg)</h3>
+            <div class="month-label-container">
+                <span id="currentMonthLabel" class="month-label">Loading Month...</span>
+            </div>
+            <table class="styled-table">
                 <thead><tr><th>Farmer</th><th>Total KG</th><th>Payable</th></tr></thead>
                 <tbody id="earningsBody"></tbody>
             </table>
         </div>
         
         <div style="text-align: center; margin-bottom: 40px;">
-            <button id="downloadBtn" class="btn-secondary">Download Monthly Report</button>
+            <button id="downloadBtn" class="btn-secondary" style="background: #3a7bd5;">📸 Download Monthly Report</button>
         </div>
     </div>
 
@@ -79,4 +82,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
