@@ -35,13 +35,17 @@ async function initApp() {
     document.getElementById('currentMonthLabel').innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
     
     // Listen for date changes in the ledger
-    document.getElementById('dateFilter').addEventListener('change', (e) => loadDailyLog(e.target.value));
+    // Change this in your initApp function
+document.getElementById('dateFilter').addEventListener('change', (e) => {
+    const selectedDate = e.target.value;
+    loadDailyLog(selectedDate);
+    
+    // This part is new: it tells the monthly report to update too!
+    const dateObj = new Date(selectedDate);
+    loadEarnings(dateObj.getMonth() + 1, dateObj.getFullYear());
+});
+    
 
-    await fetchFarmers();
-    await loadEarnings();
-    await loadDailyLog(today);
-    await renderManageList();
-}
 
 // 3. FARMER MANAGEMENT
 async function addNewFarmer() {
