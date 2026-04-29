@@ -63,13 +63,19 @@
 
 <div class="card border-top-green">
     <h3>⚙️ Business Settings</h3>
-    <div class="flex-row">
-        <label>Price per KG (Ksh):</label>
-        <input type="number" id="priceSetting" value="8" style="width: 80px;">
-        <button onclick="saveSettings()" class="btn-primary" style="width: auto; padding: 10px;">Update Price</button>
+    <div class="flex-row" style="flex-wrap: wrap;">
+        <div style="width: 100%;">
+            <label>Business Name:</label>
+            <input type="text" id="businessNameInput" placeholder="e.g. Kibet Tea Point">
+        </div>
+        <div style="width: 100%; margin-top: 10px;">
+            <label>Price per KG (Ksh):</label>
+            <input type="number" id="priceSetting" value="8" style="width: 80px;">
+        </div>
+        <button onclick="saveSettings()" class="btn-primary" style="margin-top: 15px;">Save All Settings</button>
     </div>
-    <p style="font-size: 12px; color: #666; text-align: center;">Changing this updates all "Payable" calculations.</p>
 </div>
+
 
 
         <div class="card" id="printArea">
