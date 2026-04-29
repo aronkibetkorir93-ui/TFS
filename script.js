@@ -153,15 +153,35 @@ async function loadDailyLog(dateToLoad) {
     
     const tbody = document.getElementById('dailyLogBody');
     tbody.innerHTML = '';
+    
+    // Variables for Stats
+    let totalKg = 0;
+    let farmerCount = 0;
+    const currentPrice = parseFloat(document.getElementById('priceSetting').value) || 8;
+
     if (data && data.length > 0) {
+        farmerCount = data.length;
         data.forEach(r => {
+            totalKg += r.kg_collected;
             const time = new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            tbody.innerHTML += `<tr><td>${r.farmers.name}</td><td><strong>${r.kg_collected} kg</strong></td><td>${time}</td></tr>`;
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${r.farmers.name}</td>
+                    <td><strong>${r.kg_collected} kg</strong></td>
+                    <td>${time}</td>
+                </tr>`;
         });
     } else {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No records for this date.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">No records for this date.</td></tr>';
     }
+
+    // Update the Stats UI
+    document.getElementById('dayTotalKg').innerText = `${totalKg} kg`;
+    document.getElementById('dayFarmerCount').innerText = farmerCount;
+    document.getElementById('dayTotalValue').innerText = `Ksh ${(totalKg * currentPrice).toLocaleString()}`;
 }
+
 
 async function loadEarnings(month, year) {
     // Get the price from the input box or default to 8
