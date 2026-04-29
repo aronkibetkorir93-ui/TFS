@@ -144,6 +144,9 @@ async function loadDailyLog(dateToLoad) {
 }
 
 async function loadEarnings(month, year) {
+    // Get the price from the input box or default to 8
+    const currentPrice = parseFloat(document.getElementById('priceSetting').value) || 8;
+    
     const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
     document.getElementById('currentMonthLabel').innerText = monthName;
 
@@ -152,12 +155,22 @@ async function loadEarnings(month, year) {
     
     const tbody = document.getElementById('earningsBody');
     tbody.innerHTML = '';
+    
     if(data) {
         data.forEach(row => {
-            tbody.innerHTML += `<tr><td>${row.farmer_name}</td><td>${row.total_kg} kg</td><td>Ksh ${row.total_earnings_ksh}</td></tr>`;
+            // DYNAMIC CALCULATION: No more hardcoded 8!
+            const dynamicPayable = row.total_kg * currentPrice;
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${row.farmer_name}</td>
+                    <td>${row.total_kg} kg</td>
+                    <td><strong>Ksh ${dynamicPayable.toLocaleString()}</strong></td>
+                </tr>`;
         });
     }
 }
+
 
 // 7. EDIT / DELETE
 async function renderManageList() {
