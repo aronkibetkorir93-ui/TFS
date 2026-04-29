@@ -40,15 +40,23 @@ async function handleLogout() {
 
 function saveSettings() {
     const newPrice = document.getElementById('priceSetting').value;
-    localStorage.setItem('teaPrice', newPrice); // Saves it on the phone memory
+    const newName = document.getElementById('businessNameInput').value.trim() || "Tea Farming Hub";
     
-    // Refresh the tables to show new calculations
+    // Save to local memory
+    localStorage.setItem('teaPrice', newPrice);
+    localStorage.setItem('teaBusinessName', newName);
+    
+    // Apply immediately to the UI
+    document.getElementById('displayBusinessName').innerText = newName;
+    
+    // Refresh calculations
     const selectedDate = document.getElementById('dateFilter').value;
     const d = new Date(selectedDate);
     loadEarnings(d.getMonth() + 1, d.getFullYear());
     
-    alert("Price updated to Ksh " + newPrice);
+    alert("Settings saved successfully!");
 }
+
 
 
 
