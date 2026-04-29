@@ -131,4 +131,26 @@ td { font-size: 15px; }
     align-items: center; 
     z-index: 1000; 
     }
+
+/* Styling for the Date Selector */
+#dateFilter {
+    background-color: #fcfdfc;
+    border: 2px solid #e1e8e5;
+    font-weight: bold;
+    color: var(--green);
+    cursor: pointer;
+}
+
+#dateFilter:hover {
+    border-color: var(--green);
+}
+
+/* Container for the Daily Print Snapshot */
+#dailyPrintArea {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
           
