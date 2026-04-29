@@ -38,6 +38,20 @@ async function handleLogout() {
     location.reload(); 
 }
 
+function saveSettings() {
+    const newPrice = document.getElementById('priceSetting').value;
+    localStorage.setItem('teaPrice', newPrice); // Saves it on the phone memory
+    
+    // Refresh the tables to show new calculations
+    const selectedDate = document.getElementById('dateFilter').value;
+    const d = new Date(selectedDate);
+    loadEarnings(d.getMonth() + 1, d.getFullYear());
+    
+    alert("Price updated to Ksh " + newPrice);
+}
+
+
+
 // 3. INITIALIZE DASHBOARD
 async function initApp() {
     const now = new Date();
