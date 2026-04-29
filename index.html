@@ -48,6 +48,21 @@
                 <input type="date" id="dateFilter" style="width: 60%;">
             </div>
             <div id="dailyPrintArea" class="print-container">
+                <div class="flex-row" style="margin-bottom: 15px; gap: 10px;">
+    <div class="stat-card" style="flex: 1; background: #e8f5e9; padding: 10px; border-radius: 8px; text-align: center;">
+        <small>Total KG</small>
+        <div id="dayTotalKg" style="font-size: 1.2rem; font-weight: bold; color: #2d5a27;">0 kg</div>
+    </div>
+    <div class="stat-card" style="flex: 1; background: #e8f5e9; padding: 10px; border-radius: 8px; text-align: center;">
+        <small>Farmers</small>
+        <div id="dayFarmerCount" style="font-size: 1.2rem; font-weight: bold; color: #2d5a27;">0</div>
+    </div>
+    <div class="stat-card" style="flex: 1; background: #e8f5e9; padding: 10px; border-radius: 8px; text-align: center;">
+        <small>Est. Value</small>
+        <div id="dayTotalValue" style="font-size: 1.2rem; font-weight: bold; color: #2d5a27;">Ksh 0</div>
+    </div>
+                </div>
+                
                 <table id="dailyTable" class="styled-table">
                     <thead><tr><th>Farmer</th><th>KG</th><th>Time</th></tr></thead>
                     <tbody id="dailyLogBody"></tbody>
