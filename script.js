@@ -113,30 +113,7 @@ function cancelEdit() {
 
 // 7. MONTHLY FILTER (FIXED RANGE)
 async function loadMonthlySummary() {
-    const monthNum = document.getElementById('monthSelect').value;
-    const year = new Date().getFullYear();
-    const start = `${year}-${monthNum}-01`;
-    const end = `${year}-${monthNum}-31`;
 
-    const { data } = await _supabase.from('daily_records').select('kg_collected, farmers(name)').gte('date_recorded', start).lte('date_recorded', end);
-
-    const summary = {};
-    data?.forEach(r => {
-        const name = r.farmers ? r.farmers.name : "Unknown";
-        summary[name] = (summary[name] || 0) + r.kg_collected;
-    });
-
-    const tbody = document.getElementById('monthlyBody');
-    tbody.innerHTML = '';
-    const entries = Object.entries(summary);
-    if(entries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#555;">No records found.</td></tr>';
-    } else {
-        entries.forEach(([name, kg]) => {
-            tbody.innerHTML += `<tr><td>${name}</td><td>${kg} kg</td><td class="neon-text">Ksh ${kg * 8}</td></tr>`;
-        });
-    }
-}
 
 // 8. FARMER MANAGEMENT
 async function loadFarmerList() {
@@ -149,6 +126,46 @@ async function loadFarmerList() {
         </div>
     `).join('');
 }
+
+    // REPLACE your loadMonthlySummary function with this one:
+async function loadMonthlySummary() {
+    const monthNum = document.getElementById('monthSelect').value; // e.g., "04"
+    const year = new Date().getFullYear();
+    
+    // This creates a range from the 1st to the 31st of the selected month
+    const start = `${year}-${monthNum}-01`;
+    const end = `${year}-${monthNum}-31`;
+
+    const { data, error } = await _supabase
+        .from('daily_records')
+        .select('kg_collected, farmers(name)')
+        .gte('date_recorded', start) // Greater than or equal to April 1st
+        .lte('date_recorded', end);   // Less than or equal to April 31st
+
+    const summary = {};
+    data?.forEach(r => {
+        const name = r.farmers ? r.farmers.name : "Unknown";
+        summary[name] = (summary[name] || 0) + r.kg_collected;
+    });
+
+    const tbody = document.getElementById('monthlyBody');
+    tbody.innerHTML = '';
+    
+    const entries = Object.entries(summary);
+    if(entries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#555;">No records found.</td></tr>';
+    } else {
+        entries.forEach(([name, kg]) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${name}</td>
+                    <td>${kg} kg</td>
+                    <td class="neon-text">Ksh ${kg * 8}</td>
+                </tr>`;
+        });
+    }
+}
+    
 
 async function addNewFarmer() {
     const name = document.getElementById('newFarmerName').value.trim();
