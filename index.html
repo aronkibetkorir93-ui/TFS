@@ -2,120 +2,86 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mum's Tea System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LeafLedger Pro | Tea Management</title>
+    
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-    <div id="loginOverlay" class="overlay">
-        <div class="login-card">
-            <div class="icon-circle">🌿</div>
-            <h2>Tea Farming System</h2>
-            <p>Welcome back! Please login.</p>
-            <input type="email" id="email" placeholder="Email (e.g. mum@gmail.com)">
+
+    <div id="loginOverlay" class="animate__animated animate__fadeIn">
+        <div class="card" style="width: 85%; text-align: center;">
+            <h2 class="neon-text">🍃 LEAFLEDGER PRO</h2>
+            <p style="color: var(--text-dim); font-size: 12px; margin-bottom: 20px;">SECURE ADMIN ACCESS</p>
+            <input type="email" id="email" placeholder="Admin Email">
             <input type="password" id="password" placeholder="Password">
-            <button onclick="handleLogin()" class="btn-primary">Login to Dashboard</button>
+            <button class="btn-primary" onclick="handleLogin()">AUTHENTICATE</button>
         </div>
     </div>
 
-    <div id="mainApp" style="display:none;">
-        <header class="app-header">
-            <h1>🍵 Tea Farming Hub</h1>
-            <button onclick="handleLogout()" class="btn-logout">Logout</button>
+    <div id="mainApp" class="container" style="display: none;">
+        <header class="animate__animated animate__slideInDown">
+            <h2 id="displayBusinessName">LeafLedger Hub</h2>
+            <div class="flex-row">
+                <input type="date" id="dateFilter">
+            </div>
         </header>
 
-        <div class="card border-top-green">
-            <h3>👤 Register New Farmer</h3>
-            <div class="flex-row">
-                <input type="text" id="newFarmerName" placeholder="Full Name">
-                <button onclick="addNewFarmer()" class="btn-primary" style="width: auto;">Add</button>
+        <div class="card animate__animated animate__fadeInUp">
+            <h3>📈 Production Trend</h3>
+            <canvas id="productionChart" height="180"></canvas>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box animate__animated animate__zoomIn">
+                <small>DAY TOTAL</small>
+                <div id="dayTotalKg">0 kg</div>
+            </div>
+            <div class="stat-box animate__animated animate__zoomIn" style="animation-delay: 0.1s;">
+                <small>EST. VALUE</small>
+                <div id="dayTotalValue">Ksh 0</div>
             </div>
         </div>
 
-        <div class="card border-top-green">
-            <h3>⚖️ Record Daily Delivery</h3>
+        <div class="card animate__animated animate__fadeInLeft">
+            <h3>📝 Slip Digitization</h3>
             <form id="recordForm">
-                <select id="farmerSelect" required><option value="">Select Farmer</option></select>
+                <label>Select Farmer</label>
+                <select id="farmerSelect" required></select>
+                <label>Weight from Physical Slip</label>
                 <input type="number" id="kgInput" step="0.1" placeholder="Enter KG" required>
-                <button type="submit" class="btn-primary">Save Record</button>
+                <button type="submit" class="btn-primary">SECURE RECORD</button>
             </form>
         </div>
 
-        <div class="card">
-            <h3>📅 Daily Records Ledger</h3>
-            <div class="flex-row" style="margin-bottom: 10px; justify-content: center;">
-                <label style="font-weight: bold; color: #2d5a27;">Select Date:</label>
-                <input type="date" id="dateFilter" style="width: 60%;">
-            </div>
-            <div id="dailyPrintArea" class="print-container">
-                <div class="flex-row" style="margin-bottom: 15px; gap: 10px;">
-    <div class="stat-card" style="flex: 1; background: #e8f5e9; padding: 10px; border-radius: 8px; text-align: center;">
-        <small>Total KG</small>
-        <div id="dayTotalKg" style="font-size: 1.2rem; font-weight: bold; color: #2d5a27;">0 kg</div>
-    </div>
-    <div class="stat-card" style="flex: 1; background: #e8f5e9; padding: 10px; border-radius: 8px; text-align: center;">
-        <small>Farmers</small>
-        <div id="dayFarmerCount" style="font-size: 1.2rem; font-weight: bold; color: #2d5a27;">0</div>
-    </div>
-    <div class="stat-card" style="flex: 1; background: #e8f5e9; padding: 10px; border-radius: 8px; text-align: center;">
-        <small>Est. Value</small>
-        <div id="dayTotalValue" style="font-size: 1.2rem; font-weight: bold; color: #2d5a27;">Ksh 0</div>
-    </div>
-                </div>
-                
-                <table id="dailyTable" class="styled-table">
-                    <thead><tr><th>Farmer</th><th>KG</th><th>Time</th></tr></thead>
-                    <tbody id="dailyLogBody"></tbody>
-                </table>
-            </div>
-            <button id="downloadDailyBtn" class="btn-secondary">📸 Download Daily Image</button>
-        </div>
-
-        <div class="card">
-            <h3>⚙️ Manage & Edit Records</h3>
-            <ul id="manageFarmersList" class="manage-list"></ul>
-        </div>
-
-<div class="card border-top-green">
-    <h3>⚙️ Business Settings</h3>
-    <div class="flex-row" style="flex-wrap: wrap;">
-        <div style="width: 100%;">
-            <label>Business Name:</label>
-            <input type="text" id="businessNameInput" placeholder="e.g. Kibet Tea Point">
-        </div>
-        <div style="width: 100%; margin-top: 10px;">
-            <label>Price per KG (Ksh):</label>
-            <input type="number" id="priceSetting" value="8" style="width: 80px;">
-        </div>
-        <button onclick="saveSettings()" class="btn-primary" style="margin-top: 15px;">Save All Settings</button>
-    </div>
-</div>
-
-
-
-        <div class="card" id="printArea">
-            <h3>💰 Monthly Summary (Ksh 8/kg)</h3>
-            <div class="month-label-container">
-                <span id="currentMonthLabel" class="month-label">Loading Month...</span>
-            </div>
-            <table class="styled-table">
-                <thead><tr><th>Farmer</th><th>Total KG</th><th>Payable</th></tr></thead>
-                <tbody id="earningsBody"></tbody>
+        <div class="card" id="dailyPrintArea">
+            <h3>📋 Daily Ledger</h3>
+            <table id="dailyTable">
+                <thead>
+                    <tr><th>Farmer</th><th>KG</th><th>Time</th><th>Action</th></tr>
+                </thead>
+                <tbody id="dailyLogBody"></tbody>
             </table>
-<div class="card" id="printArea">
-    <h2 id="displayBusinessName" style="text-align: center; color: #2d5a27; margin-bottom: 5px;">Tea Farming Hub</h2>
-    <h3 style="margin-top: 0;">💰 Monthly Summary</h3>
+            <button id="downloadDailyBtn" class="btn-primary" style="margin-top: 15px; background: #333; border-color: #555;">📸 SAVE SNAPSHOT</button>
+        </div>
+
+        <div class="card">
+            <h3>⚙️ System Settings</h3>
+            <label>Business Display Name</label>
+            <input type="text" id="businessNameInput" placeholder="e.g., Kibet Tea Point">
+            <label>Market Rate (Ksh/KG)</label>
+            <input type="number" id="priceSetting" step="0.1">
+            <button onclick="saveSettings()" class="btn-primary">UPDATE SYSTEM</button>
+            <button onclick="exportToExcel()" class="btn-primary" style="margin-top: 12px; background: #1b5e20; border-color: #2e7d32;">📥 EXPORT EXCEL (CSV)</button>
+        </div>
+
+        <button onclick="handleLogout()" style="width:100%; background:transparent; border:none; color:#ff4d4d; margin-top:20px; font-weight:bold; cursor:pointer;">Terminate Session</button>
     </div>
 
-        </div>
-        
-        <div style="text-align: center; margin-bottom: 40px;">
-            <button id="downloadBtn" class="btn-secondary" style="background: #3a7bd5;">📸 Download Monthly Report</button>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
