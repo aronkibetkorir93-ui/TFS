@@ -9,7 +9,7 @@
 <body>
     <div id="loginOverlay" class="overlay">
         <div class="card">
-            <h2>TEA FARMING MANAGEMENT SYSTEM</h2></h2>
+            <h2>Tea System Login</h2>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
             <button onclick="handleLogin()" class="btn-primary">Login</button>
@@ -18,7 +18,7 @@
 
     <div id="mainApp" style="display:none;">
         <header>
-            <h1>Tea Farming Management</h1>
+            <h1>Tea Farming Hub</h1>
             <button onclick="handleLogout()" class="btn-logout">Logout</button>
         </header>
 
@@ -31,7 +31,7 @@
         </div>
 
         <div class="card">
-            <h3>Daily KG Entry</h3>
+            <h3>Record Daily Delivery</h3>
             <form id="recordForm">
                 <select id="farmerSelect" required><option value="">Select Farmer</option></select>
                 <input type="number" id="kgInput" step="0.1" placeholder="Enter KG" required>
@@ -40,49 +40,38 @@
         </div>
 
         <div class="card">
-            <h3>Manage & Edit</h3>
+            <h3>Daily Records Ledger</h3>
+            <div class="flex-row" style="margin-bottom: 10px;">
+                <label>View Date:</label>
+                <input type="date" id="dateFilter">
+            </div>
+            <div id="dailyPrintArea" style="background: white; padding: 10px; border-radius: 8px;">
+                <table id="dailyTable">
+                    <thead><tr><th>Farmer</th><th>KG</th><th>Time</th></tr></thead>
+                    <tbody id="dailyLogBody"></tbody>
+                </table>
+            </div>
+            <button id="downloadDailyBtn" class="btn-secondary" style="margin-top:10px; background: #2d5a27;">Download Daily Image</button>
+        </div>
+
+        <div class="card">
+            <h3>Manage & Edit Today</h3>
             <ul id="manageFarmersList" class="manage-list"></ul>
         </div>
 
         <div class="card" id="printArea">
-            <h3 id="reportTitle">Monthly Earnings</h3>
+            <h3>Monthly Earnings (Ksh 8/kg)</h3>
             <p id="currentMonthLabel" class="month-label"></p>
             <table>
-                <thead><tr><th>Farmer</th><th>Total KG</th><th>Payable (Ksh)</th></tr></thead>
+                <thead><tr><th>Farmer</th><th>Total KG</th><th>Payable</th></tr></thead>
                 <tbody id="earningsBody"></tbody>
             </table>
         </div>
         
         <div style="text-align: center; margin-bottom: 40px;">
-            <button id="downloadBtn" class="btn-secondary">Download as Image</button>
+            <button id="downloadBtn" class="btn-secondary">Download Monthly Image</button>
         </div>
     </div>
-
-    <div class="card">
-    <h3>Daily Records Ledger</h3>
-    <div class="flex-row" style="margin-bottom: 10px;">
-        <label for="dateFilter" style="align-self: center; font-size: 14px;">View Date:</label>
-        <input type="date" id="dateFilter">
-    </div>
-    <div id="dailyPrintArea">
-        <table style="background: #fafafa; border-radius: 8px;">
-            <thead>
-                <tr>
-                    <th>Farmer</th>
-                    <th>KG</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody id="dailyLogBody"></tbody>
-        </table>
-    </div>
-    </div>
-
-    <button id="downloadDailyBtn" class="btn-secondary" style="background: var(--green); margin-top: 10px; font-size: 13px;">
-    Download Daily Ledger Image
-    </button>
-    
-    
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
