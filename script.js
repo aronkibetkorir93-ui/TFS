@@ -107,10 +107,20 @@ async function loadDailyLog(selectedDate) {
     }
 }
 
-async function loadEarnings() {
+async function loadEarnings(month, year) {
+    // If no month/year is passed, use the current real-world date
     const now = new Date();
+    const targetMonth = month || (now.getMonth() + 1);
+    const targetYear = year || now.getFullYear();
+
+    // Update the UI label (e.g., "August 2026")
+    const monthName = new Date(targetYear, targetMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+    document.getElementById('currentMonthLabel').innerText = monthName;
+
     const { data } = await _supabase.from('monthly_farmer_earnings')
-        .select('*').eq('month_num', now.getMonth() + 1).eq('year_num', now.getFullYear());
+        .select('*')
+        .eq('month_num', targetMonth)
+        .eq('year_num', targetYear);
     
     const tbody = document.getElementById('earningsBody');
     tbody.innerHTML = '';
@@ -120,6 +130,7 @@ async function loadEarnings() {
         });
     }
 }
+    
 
 // 6. EDIT & DELETE LOGIC
 async function renderManageList() {
