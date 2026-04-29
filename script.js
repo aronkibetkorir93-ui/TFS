@@ -82,6 +82,18 @@ async function initApp() {
     await renderManageList();
 }
 
+// Load saved settings from memory
+const savedPrice = localStorage.getItem('teaPrice');
+const savedName = localStorage.getItem('teaBusinessName');
+
+if (savedPrice) document.getElementById('priceSetting').value = savedPrice;
+if (savedName) {
+    document.getElementById('businessNameInput').value = savedName;
+    document.getElementById('displayBusinessName').innerText = savedName;
+}
+
+
+
 // 4. FARMER MANAGEMENT
 async function fetchFarmers() {
     const { data } = await _supabase.from('farmers').select('*').order('name');
