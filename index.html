@@ -9,7 +9,7 @@
 <body>
     <div id="loginOverlay" class="overlay">
         <div class="card">
-            <h2>Mum's Tea System</h2>
+            <h2>TEA FARMING MANAGEMENT SYSTEM</h2></h2>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
             <button onclick="handleLogin()" class="btn-primary">Login</button>
@@ -57,6 +57,27 @@
             <button id="downloadBtn" class="btn-secondary">Download as Image</button>
         </div>
     </div>
+
+    <div class="card">
+    <h3>Daily Records Ledger</h3>
+    <div class="flex-row" style="margin-bottom: 10px;">
+        <label for="dateFilter" style="align-self: center; font-size: 14px;">View Date:</label>
+        <input type="date" id="dateFilter">
+    </div>
+    <div id="dailyPrintArea">
+        <table style="background: #fafafa; border-radius: 8px;">
+            <thead>
+                <tr>
+                    <th>Farmer</th>
+                    <th>KG</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="dailyLogBody"></tbody>
+        </table>
+    </div>
+    </div>
+    
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
