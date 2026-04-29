@@ -1,22 +1,29 @@
-// CONFIGURATION
+// --- 1. SETUP SUPABASE ---
 const SUB_URL = 'https://ilohlmmbgwywulojiadd.supabase.co';
 const SUB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsb2hsbW1iZ3d5d3Vsb2ppYWRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.LIx-wCr_P4tcF-lw7Lo7FvCzWw2ScmpyMvlx-BgoGgY';
 const _supabase = supabase.createClient(SUB_URL, SUB_KEY);
 
-// 1. LOGIN SYSTEM
+// --- 2. LOGIN & VOICE GREETING ---
 async function handleLogin() {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     
-    if(!email || !password) return alert("Please enter both email and password.");
+    if(!email || !password) return alert("Please enter your email and password.");
 
     const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
     
     if (error) {
-        alert("Login Error: " + error.message);
+        alert("Login failed. Check your password or email. Error: " + error.message);
     } else {
+        // Hide login and show app
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
+        
+        // Voice Greeting Magic
+        const greeting = new SpeechSynthesisUtterance("Welcome to the Tea Farming management system.");
+        greeting.rate = 0.9; // Slightly slower, friendly speed
+        window.speechSynthesis.speak(greeting);
+
         initApp();
     }
 }
@@ -26,28 +33,30 @@ async function handleLogout() {
     location.reload(); 
 }
 
-// 2. INITIALIZE DASHBOARD
+// --- 3. INITIALIZE & SYNC LOGIC ---
 async function initApp() {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     
-    document.getElementById('dateFilter').value = today;
-    document.getElementById('currentMonthLabel').innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+    const dateFilter = document.getElementById('dateFilter');
+    dateFilter.value = today;
     
-    // Listen for date changes in the ledger
-    // Change this in your initApp function
-document.getElementById('dateFilter').addEventListener('change', (e) => {
-    const selectedDate = e.target.value;
-    loadDailyLog(selectedDate);
-    
-    // This part is new: it tells the monthly report to update too!
-    const dateObj = new Date(selectedDate);
-    loadEarnings(dateObj.getMonth() + 1, dateObj.getFullYear());
-});
-    
+    // Listen for Date changes to update both Daily & Monthly tables!
+    dateFilter.addEventListener('change', (e) => {
+        const selectedDate = e.target.value;
+        const d = new Date(selectedDate);
+        
+        loadDailyLog(selectedDate);
+        loadEarnings(d.getMonth() + 1, d.getFullYear()); // Syncs the month
+    });
 
+    await fetchFarmers();
+    await loadDailyLog(today);
+    await loadEarnings(now.getMonth() + 1, now.getFullYear());
+    await renderManageList();
+}
 
-// 3. FARMER MANAGEMENT
+// --- 4. FARMER REGISTRATION ---
 async function addNewFarmer() {
     const name = document.getElementById('newFarmerName').value.trim();
     if (!name) return;
@@ -63,85 +72,80 @@ async function fetchFarmers() {
     if(farmers) farmers.forEach(f => select.innerHTML += `<option value="${f.id}">${f.name}</option>`);
 }
 
-// 4. DAILY RECORDING (WITH DUPLICATE CHECK)
+// --- 5. RECORD DATA (NO DUPLICATES) ---
 document.getElementById('recordForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const farmer_id = document.getElementById('farmerSelect').value;
     const kg_collected = parseFloat(document.getElementById('kgInput').value);
     const today = new Date().toISOString().split('T')[0];
 
-    // Check if farmer already recorded today
+    // Duplicate Check
     const { data: existing } = await _supabase.from('daily_records')
         .select('id').eq('farmer_id', farmer_id).eq('date_recorded', today);
 
     if (existing && existing.length > 0) {
-        alert("Error: Farmer already recorded for today. Use the 'Edit' button below to change the weight.");
+        alert("Wait! This farmer already has a record today. Use 'Edit Today' to change it.");
         return;
     }
 
     const { error } = await _supabase.from('daily_records').insert([{ farmer_id, kg_collected }]);
     if (!error) {
         document.getElementById('kgInput').value = '';
-        initApp();
-        alert("Success! Record saved.");
+        initApp(); // Refresh everything
     } else {
         alert("Error saving: " + error.message);
     }
 });
 
-// 5. LEDGER & EARNINGS LOADING
+// --- 6. LOAD TABLES ---
 async function loadDailyLog(selectedDate) {
     const { data } = await _supabase.from('daily_records')
         .select(`kg_collected, created_at, farmers(name)`)
-        .eq('date_recorded', selectedDate);
+        .eq('date_recorded', selectedDate)
+        .order('created_at', { ascending: false });
     
     const tbody = document.getElementById('dailyLogBody');
     tbody.innerHTML = '';
     if (data && data.length > 0) {
         data.forEach(r => {
             const time = new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            tbody.innerHTML += `<tr><td>${r.farmers.name}</td><td>${r.kg_collected} kg</td><td>${time}</td></tr>`;
+            tbody.innerHTML += `<tr><td>${r.farmers.name}</td><td><strong>${r.kg_collected} kg</strong></td><td style="color:#666;">${time}</td></tr>`;
         });
     } else {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: #999;">No records for this date.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">No records found for this date.</td></tr>';
     }
 }
 
 async function loadEarnings(month, year) {
-    // If no month/year is passed, use the current real-world date
-    const now = new Date();
-    const targetMonth = month || (now.getMonth() + 1);
-    const targetYear = year || now.getFullYear();
+    const targetMonth = month;
+    const targetYear = year;
 
-    // Update the UI label (e.g., "August 2026")
+    // Update the label UI to match the selected month
     const monthName = new Date(targetYear, targetMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
     document.getElementById('currentMonthLabel').innerText = monthName;
 
     const { data } = await _supabase.from('monthly_farmer_earnings')
-        .select('*')
-        .eq('month_num', targetMonth)
-        .eq('year_num', targetYear);
+        .select('*').eq('month_num', targetMonth).eq('year_num', targetYear);
     
     const tbody = document.getElementById('earningsBody');
     tbody.innerHTML = '';
     if(data) {
         data.forEach(row => {
-            tbody.innerHTML += `<tr><td>${row.farmer_name}</td><td>${row.total_kg} kg</td><td>Ksh ${row.total_earnings_ksh.toLocaleString()}</td></tr>`;
+            tbody.innerHTML += `<tr><td>${row.farmer_name}</td><td>${row.total_kg} kg</td><td><strong>Ksh ${row.total_earnings_ksh.toLocaleString()}</strong></td></tr>`;
         });
     }
 }
-    
 
-// 6. EDIT & DELETE LOGIC
+// --- 7. MANAGE (EDIT / DELETE) ---
 async function renderManageList() {
     const { data: farmers } = await _supabase.from('farmers').select('*').order('name');
     const list = document.getElementById('manageFarmersList');
     list.innerHTML = '';
     if(farmers) {
         farmers.forEach(f => {
-            list.innerHTML += `<li class="manage-item"><span>${f.name}</span><div>
+            list.innerHTML += `<li class="manage-item"><strong>${f.name}</strong><div>
                 <button onclick="editToday('${f.id}', '${f.name}')" class="btn-edit">Edit Today</button>
-                <button onclick="deleteFarmer('${f.id}', '${f.name}')" class="btn-del">Del</button>
+                <button onclick="deleteFarmer('${f.id}', '${f.name}')" class="btn-del">Delete</button>
             </div></li>`;
         });
     }
@@ -150,7 +154,7 @@ async function renderManageList() {
 async function editToday(fId, name) {
     const today = new Date().toISOString().split('T')[0];
     const { data } = await _supabase.from('daily_records').select('*').eq('farmer_id', fId).eq('date_recorded', today);
-    if (!data || data.length === 0) return alert("No record for " + name + " today to edit.");
+    if (!data || data.length === 0) return alert(`No record for ${name} today.`);
     
     const newKg = prompt(`Update KG for ${name}:`, data[0].kg_collected);
     if (newKg !== null && !isNaN(newKg)) {
@@ -160,15 +164,15 @@ async function editToday(fId, name) {
 }
 
 async function deleteFarmer(id, name) {
-    if (confirm(`Are you sure you want to delete ${name}? This removes ALL their historical tea records.`)) {
+    if (confirm(`Warning: Delete ${name} and ALL their past records forever?`)) {
         await _supabase.from('farmers').delete().eq('id', id);
         initApp();
     }
 }
 
-// 7. IMAGE GENERATION
+// --- 8. DOWNLOAD IMAGES ---
 document.getElementById('downloadBtn').addEventListener('click', () => {
-    html2canvas(document.getElementById('printArea'), { scale: 2 }).then(canvas => {
+    html2canvas(document.getElementById('printArea'), { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
         const link = document.createElement('a');
         link.download = `Monthly-Tea-Report.png`;
         link.href = canvas.toDataURL();
@@ -177,11 +181,11 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
 });
 
 document.getElementById('downloadDailyBtn').addEventListener('click', () => {
-    html2canvas(document.getElementById('dailyPrintArea'), { scale: 2 }).then(canvas => {
+    html2canvas(document.getElementById('dailyPrintArea'), { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
         const link = document.createElement('a');
-        link.download = `Daily-Ledger.png`;
+        const d = document.getElementById('dateFilter').value;
+        link.download = `Daily-Tea-Ledger-${d}.png`;
         link.href = canvas.toDataURL();
         link.click();
     });
 });
-                
