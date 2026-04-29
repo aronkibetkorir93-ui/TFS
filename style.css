@@ -1,17 +1,89 @@
-:root { --green: #2d5a27; --blue: #3a7bd5; --red: #d9534f; }
-body { font-family: 'Segoe UI', sans-serif; background: #f0f4f3; padding: 10px; margin: 0; }
-.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 480px; margin: 0 auto 15px; border: 1px solid #e0e0e0; }
-h1, h3 { text-align: center; color: var(--green); margin-top: 0; }
-input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
-.btn-primary { background: var(--green); color: white; border: none; cursor: pointer; font-weight: bold; }
-.btn-secondary { background: var(--blue); color: white; border: none; cursor: pointer; width: auto; padding: 10px 20px; border-radius: 20px; font-size: 14px; }
-.btn-logout { background: white; border: 1px solid var(--red); color: var(--red); width: auto; float: right; padding: 5px 10px; cursor: pointer; border-radius: 5px; }
+/* Color Palette */
+:root { 
+    --green-primary: #2d5a27; 
+    --green-light: #4caf50;
+    --green-bg: #e8f5e9;
+    --blue: #3a7bd5; 
+    --red: #d9534f; 
+    --text-dark: #333;
+}
+
+body { 
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+    background-color: #f4f7f6; 
+    padding: 10px; 
+    margin: 0; 
+    color: var(--text-dark);
+}
+
+/* Header */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--green-primary);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.app-header h1 { margin: 0; font-size: 20px; }
+
+/* Cards */
+.card { 
+    background: white; 
+    padding: 20px; 
+    border-radius: 15px; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+    max-width: 500px; 
+    margin: 0 auto 20px; 
+}
+.border-top-green { border-top: 5px solid var(--green-primary); }
+h2, h3 { color: var(--green-primary); text-align: center; margin-top: 0; }
+
+/* Inputs & Buttons */
+input, select { 
+    width: 100%; padding: 12px; margin: 8px 0; 
+    border-radius: 8px; border: 1px solid #ccc; 
+    font-size: 16px; box-sizing: border-box; background: #fdfdfd;
+}
+input:focus, select:focus { border-color: var(--green-light); outline: none; }
+
+.btn-primary { 
+    background: linear-gradient(135deg, var(--green-light) 0%, var(--green-primary) 100%); 
+    color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; 
+    cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+
+.btn-secondary { 
+    background: var(--green-primary); color: white; border: none; 
+    cursor: pointer; width: 100%; padding: 12px; border-radius: 25px; 
+    font-size: 15px; font-weight: bold; margin-top: 10px;
+}
+.btn-logout { background: white; color: var(--red); border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-weight: bold;}
+
+/* Flex & Lists */
 .flex-row { display: flex; gap: 10px; align-items: center; }
 .manage-list { list-style: none; padding: 0; }
-.manage-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-.btn-edit { background: #f0ad4e; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-.btn-del { background: var(--red); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; font-size: 14px; }
-.month-label { text-align: center; font-weight: bold; color: var(--green); background: #e8f0e7; padding: 8px; border-radius: 5px; }
-.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f4f3; display: flex; align-items: center; z-index: 1000; }
+.manage-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; }
+.btn-edit { background: #f0ad4e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 5px; }
+.btn-del { background: var(--red); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+/* Tables */
+.print-container { background: white; padding: 10px; border-radius: 8px; border: 1px dashed #ccc; }
+.styled-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+.styled-table th { background-color: var(--green-bg); color: var(--green-primary); padding: 12px; text-align: left; }
+.styled-table td { border-bottom: 1px solid #eee; padding: 12px; font-size: 15px; }
+
+/* Labels */
+.month-label-container { text-align: center; margin: 10px 0; }
+.month-label { background: var(--green-primary); color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+
+/* Login Overlay Graphics */
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.login-card { background: white; padding: 30px 20px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.icon-circle { background: var(--green-bg); width: 60px; height: 60px; line-height: 60px; font-size: 30px; border-radius: 50%; margin: 0 auto 15px; }
+.login-card p { color: #666; margin-bottom: 20px; }
