@@ -1,17 +1,17 @@
 :root { --green: #2d5a27; --blue: #3a7bd5; --red: #d9534f; }
 body { font-family: 'Segoe UI', sans-serif; background: #f0f4f3; padding: 10px; margin: 0; }
-.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 480px; margin: 0 auto 15px; }
-h1, h3 { text-align: center; color: var(--green); }
-input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 480px; margin: 0 auto 15px; border: 1px solid #e0e0e0; }
+h1, h3 { text-align: center; color: var(--green); margin-top: 0; }
+input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
 .btn-primary { background: var(--green); color: white; border: none; cursor: pointer; font-weight: bold; }
 .btn-secondary { background: var(--blue); color: white; border: none; cursor: pointer; width: auto; padding: 10px 20px; border-radius: 20px; font-size: 14px; }
-.btn-logout { background: none; border: 1px solid var(--red); color: var(--red); width: auto; float: right; padding: 4px 8px; cursor: pointer; }
+.btn-logout { background: white; border: 1px solid var(--red); color: var(--red); width: auto; float: right; padding: 5px 10px; cursor: pointer; border-radius: 5px; }
 .flex-row { display: flex; gap: 10px; align-items: center; }
 .manage-list { list-style: none; padding: 0; }
 .manage-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-.btn-edit { background: orange; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px; }
+.btn-edit { background: #f0ad4e; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 .btn-del { background: var(--red); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
-.month-label { text-align: center; font-weight: bold; color: var(--green); background: #e8f0e7; padding: 5px; }
-.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f4f3; display: flex; align-items: center; z-index: 100; }
+th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; font-size: 14px; }
+.month-label { text-align: center; font-weight: bold; color: var(--green); background: #e8f0e7; padding: 8px; border-radius: 5px; }
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f4f3; display: flex; align-items: center; z-index: 1000; }
