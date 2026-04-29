@@ -18,47 +18,74 @@ async function handleLogout() { await _supabase.auth.signOut(); location.reload(
 
 async function initApp() {
     const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    document.getElementById('dateFilter').value = today;
     document.getElementById('currentMonthLabel').innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+    
+    document.getElementById('dateFilter').addEventListener('change', (e) => loadDailyLog(e.target.value));
+
     fetchFarmers();
     loadEarnings();
+    loadDailyLog(today);
     renderManageList();
 }
 
 async function addNewFarmer() {
     const name = document.getElementById('newFarmerName').value.trim();
     if (!name) return;
-    const { error } = await _supabase.from('farmers').insert([{ name }]);
-    if (!error) {
-        document.getElementById('newFarmerName').value = '';
-        initApp();
-    }
+    await _supabase.from('farmers').insert([{ name }]);
+    document.getElementById('newFarmerName').value = '';
+    initApp();
 }
 
 async function fetchFarmers() {
     const { data: farmers } = await _supabase.from('farmers').select('*').order('name');
     const select = document.getElementById('farmerSelect');
     select.innerHTML = '<option value="">Select Farmer</option>';
-    farmers.forEach(f => {
-        select.innerHTML += `<option value="${f.id}">${f.name}</option>`;
-    });
+    farmers.forEach(f => select.innerHTML += `<option value="${f.id}">${f.name}</option>`);
 }
 
+// RECORD WITH ANTI-DUPLICATE
 document.getElementById('recordForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const farmer_id = document.getElementById('farmerSelect').value;
     const kg_collected = document.getElementById('kgInput').value;
+    const today = new Date().toISOString().split('T')[0];
+
+    // Duplicate Check
+    const { data: existing } = await _supabase.from('daily_records').select('id').eq('farmer_id', farmer_id).eq('date_recorded', today);
+
+    if (existing && existing.length > 0) {
+        alert("Farmer already recorded for today. Use the 'Edit' button to change weight.");
+        return;
+    }
+
     const { error } = await _supabase.from('daily_records').insert([{ farmer_id, kg_collected }]);
     if (!error) {
         document.getElementById('kgInput').value = '';
         loadEarnings();
+        loadDailyLog(today);
         alert("Saved!");
     }
 });
 
+async function loadDailyLog(selectedDate) {
+    const { data } = await _supabase.from('daily_records').select(`kg_collected, created_at, farmers(name)`).eq('date_recorded', selectedDate);
+    const tbody = document.getElementById('dailyLogBody');
+    tbody.innerHTML = '';
+    if (data && data.length > 0) {
+        data.forEach(r => {
+            const time = new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            tbody.innerHTML += `<tr><td>${r.farmers.name}</td><td>${r.kg_collected} kg</td><td>${time}</td></tr>`;
+        });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No records.</td></tr>';
+    }
+}
+
 async function loadEarnings() {
     const now = new Date();
-    const { data } = await _supabase.from('monthly_farmer_earnings')
-        .select('*').eq('month_num', now.getMonth() + 1).eq('year_num', now.getFullYear());
+    const { data } = await _supabase.from('monthly_farmer_earnings').select('*').eq('month_num', now.getMonth() + 1).eq('year_num', now.getFullYear());
     const tbody = document.getElementById('earningsBody');
     tbody.innerHTML = '';
     data.forEach(row => {
@@ -73,7 +100,7 @@ async function renderManageList() {
     farmers.forEach(f => {
         list.innerHTML += `<li class="manage-item"><span>${f.name}</span><div>
             <button onclick="editToday('${f.id}', '${f.name}')" class="btn-edit">Edit Today</button>
-            <button onclick="deleteFarmer('${f.id}', '${f.name}')" class="btn-del">Del</button>
+            <button onclick="deleteFarmer('${f.id}', '${f.name}')" class="btn-del">Delete</button>
         </div></li>`;
     });
 }
@@ -82,104 +109,36 @@ async function editToday(fId, name) {
     const today = new Date().toISOString().split('T')[0];
     const { data } = await _supabase.from('daily_records').select('*').eq('farmer_id', fId).eq('date_recorded', today);
     if (data.length === 0) return alert("No record for today.");
-    const newKg = prompt(`Edit KG for ${name}:`, data[0].kg_collected);
+    const newKg = prompt(`Update KG for ${name}:`, data[0].kg_collected);
     if (newKg) {
         await _supabase.from('daily_records').update({ kg_collected: newKg }).eq('id', data[0].id);
-        loadEarnings();
+        initApp();
     }
 }
 
 async function deleteFarmer(id, name) {
-    if (confirm(`Delete ${name}?`)) {
+    if (confirm(`Delete ${name} and all their records?`)) {
         await _supabase.from('farmers').delete().eq('id', id);
         initApp();
     }
 }
-// 1. Update initApp to set default date and listener
-async function initApp() {
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    
-    const dateInput = document.getElementById('dateFilter');
-    dateInput.value = today; // Set default to today
-    
-    // Listen for date changes
-    dateInput.addEventListener('change', () => {
-        loadDailyLog(dateInput.value);
-    });
 
-    document.getElementById('currentMonthLabel').innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-    
-    fetchFarmers();
-    loadEarnings();        // Monthly summary keeps accumulating
-    loadDailyLog(today);   // Load today's records by default
-    renderManageList();
-}
-
-// 2. Updated Daily Log function to accept a specific date
-async function loadDailyLog(selectedDate) {
-    const { data, error } = await _supabase
-        .from('daily_records')
-        .select(`
-            id,
-            kg_collected,
-            created_at,
-            farmers ( name )
-        `)
-        .eq('date_recorded', selectedDate)
-        .order('created_at', { ascending: false });
-
-    const tbody = document.getElementById('dailyLogBody');
-    tbody.innerHTML = '';
-
-    if (data && data.length > 0) {
-        data.forEach(record => {
-            const time = new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            tbody.innerHTML += `
-                <tr>
-                    <td>${record.farmers.name}</td>
-                    <td>${record.kg_collected} kg</td>
-                    <td style="color: #888; font-size: 12px;">${time}</td>
-                </tr>`;
-        });
-    } else {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">No records for this date.</td></tr>';
-    }
-}
-
-// ADD THIS TO THE TOP OF YOUR 'recordForm' SUBMIT LISTENER
-const farmer_id = document.getElementById('farmerSelect').value;
-const today = new Date().toISOString().split('T')[0];
-
-// 1. Check if farmer already has a record today
-const { data: existing } = await _supabase
-    .from('daily_records')
-    .select('id')
-    .eq('farmer_id', farmer_id)
-    .eq('date_recorded', today);
-
-if (existing && existing.length > 0) {
-    alert("Record already exists for this farmer today! Please use the 'Edit' button below to change the weight.");
-    return; // This stops the code from saving a duplicate
-}
-
-
-// 3. Update the Submit Logic in the form listener
-// Change this line inside your recordForm.addEventListener:
-if (!error) {
-    document.getElementById('kgInput').value = '';
-    const currentDateView = document.getElementById('dateFilter').value;
-    loadEarnings(); 
-    loadDailyLog(currentDateView); // Refresh the view for the currently selected date
-    alert("Record Saved!");
-}
-
-
+// DOWNLOAD AS IMAGES
 document.getElementById('downloadBtn').addEventListener('click', () => {
     html2canvas(document.getElementById('printArea'), { scale: 2 }).then(canvas => {
         const link = document.createElement('a');
-        link.download = `Tea-Report.png`;
+        link.download = `Monthly-Tea-Report.png`;
         link.href = canvas.toDataURL();
         link.click();
     });
 });
+
+document.getElementById('downloadDailyBtn').addEventListener('click', () => {
+    html2canvas(document.getElementById('dailyPrintArea'), { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Daily-Tea-Ledger.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+});
+            
