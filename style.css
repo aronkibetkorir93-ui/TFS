@@ -153,4 +153,21 @@ td { font-size: 15px; }
     margin-top: 10px;
 }
 
+/* Differentiate the Daily Ledger Table */
+#dailyTable {
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+#dailyTable th {
+    background-color: #f1f5f2;
+    color: #444;
+}
+
+#dailyLogBody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+
           
