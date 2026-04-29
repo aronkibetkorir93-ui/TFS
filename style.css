@@ -169,5 +169,47 @@ td { font-size: 15px; }
     background-color: #fafafa;
 }
 
+/* Manage List Style */
+.manage-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.manage-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+}
+
+.manage-item:last-child {
+    border-bottom: none;
+}
+
+/* Button colors for Edit and Delete */
+.btn-edit {
+    background-color: #f0ad4e;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn-del {
+    background-color: var(--red);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+
 
           
