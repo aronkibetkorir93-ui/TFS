@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mama Tea Hub | Live</title>
+    <title>Mama Tea Hub</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="container">
+    <div id="loginOverlay">
+        <div class="auth-card">
+            <h2 class="neon-text">MAMA TEA HUB</h2>
+            <p style="color: #666; font-size: 12px; margin-bottom: 20px;">SYSTEM SECURE</p>
+            <input type="password" id="pinInput" placeholder="****" maxlength="4">
+            <button class="btn-primary" onclick="checkPin()">ENTER</button>
+        </div>
+    </div>
+
+    <div id="mainApp" class="container" style="display: none;">
         <header>
-            <h2 class="neon-title">MAMA TEA HUB</h2>
+            <h2 class="neon-text" style="text-align: center;">MAMA TEA HUB</h2>
             <div class="tab-group">
                 <div class="tab active" onclick="switchTab(event, 'daily')">DAILY</div>
                 <div class="tab" onclick="switchTab(event, 'monthly')">MONTHLY</div>
@@ -20,29 +29,20 @@
 
         <div id="dailySection" class="section-content">
             <div class="card">
-                <h3>📝 New Record</h3>
+                <h3>📝 Record Entry</h3>
                 <label>Select Farmer</label>
                 <select id="farmerSelect"></select>
-                
                 <label>Weight (KG)</label>
                 <input type="number" id="kgInput" step="0.1" placeholder="0.0" inputmode="decimal">
-                
                 <label>Date</label>
                 <input type="date" id="dateFilter">
-                
-                <button class="btn-primary" onclick="saveRecord()">SAVE TO DEVICE</button>
+                <button class="btn-primary" onclick="saveRecord()">SAVE RECORD</button>
             </div>
 
             <div class="card">
-                <h3>📋 Daily Ledger</h3>
+                <h3>📋 Daily Log</h3>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Farmer</th>
-                            <th>KG</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Farmer</th><th>KG</th><th>Action</th></tr></thead>
                     <tbody id="dailyLogBody"></tbody>
                 </table>
             </div>
@@ -50,29 +50,10 @@
 
         <div id="monthlySection" class="section-content" style="display:none;">
             <div class="card">
-                <h3>💰 Monthly Totals</h3>
-                <select id="monthSelect" onchange="loadMonthlySummary()">
-                    <option value="01">January</option>
-                    <option value="02">February</option>
-                    <option value="03">March</option>
-                    <option value="04">April</option>
-                    <option value="05">May</option>
-                    <option value="06">June</option>
-                    <option value="07">July</option>
-                    <option value="08">August</option>
-                    <option value="09">September</option>
-                    <option value="10">October</option>
-                    <option value="11">November</option>
-                    <option value="12">December</option>
-                </select>
+                <h3>💰 Monthly Summary</h3>
+                <select id="monthSelect" onchange="loadMonthlySummary()"></select>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Farmer</th>
-                            <th>Total KG</th>
-                            <th>Earnings</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Farmer</th><th>Total KG</th><th>Earnings</th></tr></thead>
                     <tbody id="monthlyBody"></tbody>
                 </table>
             </div>
@@ -80,12 +61,14 @@
 
         <div id="farmersSection" class="section-content" style="display:none;">
             <div class="card">
-                <h3>➕ Add New Farmer</h3>
-                <input type="text" id="newFarmerName" placeholder="Enter Full Name">
-                <button class="btn-primary" onclick="addNewFarmer()">REGISTER FARMER</button>
+                <h3>➕ Register New Farmer</h3>
+                <input type="text" id="newFarmerName" placeholder="Full Name">
+                <button class="btn-primary" onclick="addNewFarmer()">ADD TO SYSTEM</button>
             </div>
             <div id="farmerList"></div>
         </div>
+
+        <button onclick="location.reload()" class="btn-logout">LOGOUT / LOCK</button>
     </div>
 
     <script src="script.js"></script>
