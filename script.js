@@ -1,11 +1,9 @@
-// CONFIGURATION
 const URL = 'https://ilohlmmbgwywulojiadd.supabase.co';
 const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsb2hsbW1iZ3d5d3Vsb2ppYWRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.LIx-wCr_P4tcF-lw7Lo7FvCzWw2ScmpyMvlx-BgoGgY';
 const _db = supabase.createClient(URL, KEY);
 
 let editingId = null;
 
-// 1. PIN LOGIN
 function handleLogin() {
     if(document.getElementById('password').value === "1234") {
         document.getElementById('loginOverlay').style.display = 'none';
@@ -14,18 +12,15 @@ function handleLogin() {
     } else { alert("Wrong PIN"); }
 }
 
-// 2. STARTUP
 async function initApp() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('dateFilter').value = today;
     document.getElementById('monthSelect').value = ("0" + (new Date().getMonth() + 1)).slice(-2);
-    
     await loadFarmers();
     await loadDaily();
     document.getElementById('dateFilter').addEventListener('change', loadDaily);
 }
 
-// 3. TAB SWITCHING
 function switchTab(e, tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.section-content').forEach(s => s.style.display = 'none');
@@ -35,23 +30,32 @@ function switchTab(e, tab) {
     if(tab === 'farmers') loadFarmers();
 }
 
-// 4. ADD NEW FARMER (FIXED)
+// THIS IS THE FIXED FARMER BUTTON
 async function addNewFarmer() {
     const input = document.getElementById('newFarmerName');
     const name = input.value.trim();
-    if(!name) return alert("Enter a name");
+    
+    if(!name) {
+        alert("Please enter a name first.");
+        return;
+    }
 
-    const { error } = await _db.from('farmers').insert([{ name }]);
-    if(error) {
-        alert("Error saving farmer. Check your internet.");
-    } else {
-        input.value = '';
-        alert("Farmer added!");
-        loadFarmers(); // Refresh list
+    try {
+        const { data, error } = await _db.from('farmers').insert([{ name: name }]).select();
+
+        if (error) {
+            // IF IT FAILS, THIS WILL TELL YOU WHY
+            alert("Database Error: " + error.message); 
+        } else {
+            input.value = ''; 
+            alert("Success! " + name + " has been added.");
+            await loadFarmers(); 
+        }
+    } catch (err) {
+        alert("System Error. Check your internet connection.");
     }
 }
 
-// 5. SAVE DAILY RECORD
 async function saveRecord() {
     const fId = document.getElementById('farmerSelect').value;
     const kg = parseFloat(document.getElementById('kgInput').value);
@@ -63,7 +67,7 @@ async function saveRecord() {
         let q = JSON.parse(localStorage.getItem('tea_q') || "[]");
         q.push({ farmer_id: fId, kg_collected: kg, date_recorded: date });
         localStorage.setItem('tea_q', JSON.stringify(q));
-        alert("Saved Offline!");
+        alert("Saved Offline! Will upload when internet returns.");
     } else {
         if(editingId) {
             await _db.from('daily_records').update({ farmer_id: fId, kg_collected: kg }).eq('id', editingId);
@@ -76,7 +80,16 @@ async function saveRecord() {
     loadDaily();
 }
 
-// 6. LOAD DAILY LOG
+window.addEventListener('online', async () => {
+    let q = JSON.parse(localStorage.getItem('tea_q') || "[]");
+    if(q.length > 0) {
+        await _db.from('daily_records').insert(q);
+        localStorage.removeItem('tea_q');
+        loadDaily();
+        alert("Offline records have been uploaded!");
+    }
+});
+
 async function loadDaily() {
     const date = document.getElementById('dateFilter').value;
     const { data } = await _db.from('daily_records').select('id, farmer_id, kg_collected, created_at, farmers(name)').eq('date_recorded', date);
@@ -88,17 +101,16 @@ async function loadDaily() {
     data?.forEach(r => {
         total += r.kg_collected;
         body.innerHTML += `<tr>
-            <td>${r.farmers?.name || 'User'}</td>
+            <td>${r.farmers?.name || 'Unknown'}</td>
             <td>${r.kg_collected} kg</td>
             <td>${new Date(r.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
-            <td><button onclick="prepareEdit('${r.id}','${r.farmer_id}',${r.kg_collected})" style="background:none; border:none; color:cyan;">📝</button></td>
+            <td><button onclick="prepareEdit('${r.id}','${r.farmer_id}',${r.kg_collected})" style="background:none; border:none; color:cyan; font-size: 16px;">📝</button></td>
         </tr>`;
     });
     document.getElementById('dayTotalKg').innerText = total + " kg";
     document.getElementById('dayTotalValue').innerText = "Ksh " + (total * 8);
 }
 
-// 7. MONTHLY SUMMARY (FIXED RANGE)
 async function loadMonthlySummary() {
     const m = document.getElementById('monthSelect').value;
     const y = new Date().getFullYear();
@@ -128,7 +140,6 @@ async function loadMonthlySummary() {
     }
 }
 
-// 8. HELPERS
 async function loadFarmers() {
     const { data } = await _db.from('farmers').select('*').order('name');
     if(data) {
