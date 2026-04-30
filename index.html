@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mama Tea Hub | Professional Ledger</title>
+    <title>Mama Tea Hub</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -13,15 +14,15 @@
     <div id="loginOverlay">
         <div class="card auth-card">
             <h2 class="neon-text">🍃 MAMA TEA HUB</h2>
-            <p style="color: #666; font-size: 12px;">ENTER SYSTEM PIN</p>
-            <input type="password" id="password" placeholder="****" style="text-align: center; font-size: 24px; letter-spacing: 10px;">
+            <p style="color: #666; font-size: 12px; margin-bottom: 20px;">ENTER SYSTEM PIN</p>
+            <input type="password" id="password" placeholder="****" style="text-align: center; font-size: 24px; letter-spacing: 8px;">
             <button class="btn-primary" onclick="handleLogin()">OPEN SYSTEM</button>
         </div>
     </div>
 
     <div id="mainApp" class="container" style="display: none;">
         <header>
-            <h2 class="neon-text" style="text-align: center; margin-bottom: 20px;">MAMA TEA HUB</h2>
+            <h2 class="neon-text" style="text-align: center;">MAMA TEA HUB</h2>
             <div class="tab-group">
                 <div class="tab active" onclick="switchTab(event, 'daily')">DAILY</div>
                 <div class="tab" onclick="switchTab(event, 'monthly')">MONTHLY</div>
@@ -30,11 +31,6 @@
         </header>
 
         <div id="dailySection" class="section-content">
-            <div class="card">
-                <label>Viewing Ledger For:</label>
-                <input type="date" id="dateFilter">
-            </div>
-
             <div class="stat-grid">
                 <div class="stat-box"><small>TOTAL KG</small><div id="dayTotalKg" class="neon-text">0 kg</div></div>
                 <div class="stat-box"><small>EST. VALUE</small><div id="dayTotalValue" class="neon-text">Ksh 0</div></div>
@@ -44,8 +40,10 @@
                 <h3 id="formTitle">📝 Record Entry</h3>
                 <label>Select Farmer</label>
                 <select id="farmerSelect"></select>
-                <label>Weight from Slip (KG)</label>
+                <label>Weight (KG)</label>
                 <input type="number" id="kgInput" step="0.1" placeholder="0.0">
+                <label>Date</label>
+                <input type="date" id="dateFilter">
                 <button id="saveBtn" class="btn-primary" onclick="saveRecord()">SECURE RECORD</button>
                 <button id="cancelEditBtn" class="btn-secondary" style="display:none; margin-top:10px;" onclick="cancelEdit()">CANCEL EDIT</button>
             </div>
@@ -53,17 +51,16 @@
             <div class="card" id="printArea">
                 <h3>📋 Daily Ledger</h3>
                 <table>
-                    <thead><tr><th>Farmer</th><th>KG</th><th>Time</th><th>Action</th></tr></thead>
+                    <thead><tr><th>Farmer</th><th>KG</th><th>Time</th><th>Edit</th></tr></thead>
                     <tbody id="dailyLogBody"></tbody>
                 </table>
-                <button class="btn-secondary" style="margin-top: 15px;" onclick="takeSnapshot()">📸 SAVE SNAPSHOT</button>
+                <button class="btn-secondary" style="margin-top: 15px;" onclick="takeSnapshot()">📸 SNAPSHOT</button>
             </div>
         </div>
 
         <div id="monthlySection" class="section-content" style="display:none;">
             <div class="card">
                 <h3>💰 Monthly Payouts</h3>
-                <label>Select Month</label>
                 <select id="monthSelect" onchange="loadMonthlySummary()">
                     <option value="01">January</option><option value="02">February</option>
                     <option value="03">March</option><option value="04">April</option>
@@ -81,19 +78,21 @@
 
         <div id="farmersSection" class="section-content" style="display:none;">
             <div class="card">
-                <h3>➕ Register Farmer</h3>
-                <input type="text" id="newFarmerName" placeholder="Farmer's Full Name">
-                <button class="btn-primary" onclick="addNewFarmer()">ADD TO SYSTEM</button>
+                <h3>➕ Add Farmer</h3>
+                <input type="text" id="newFarmerName" placeholder="Full Name">
+                <button class="btn-primary" onclick="addNewFarmer()">REGISTER</button>
             </div>
-            <div class="card">
-                <h3>👥 Active Farmers</h3>
-                <div id="farmerList"></div>
-            </div>
+            <div id="farmerList"></div>
         </div>
 
-        <button onclick="location.reload()" class="btn-logout">Terminate Session</button>
+        <button onclick="location.reload()" class="btn-logout">Log Out</button>
     </div>
 
     <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
 </body>
 </html>
