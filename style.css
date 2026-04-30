@@ -9,7 +9,7 @@ body { background: var(--bg); color: var(--text); font-family: sans-serif; margi
 .stat-box { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border-bottom: 3px solid var(--neon); }
 .stat-box small { font-size: 9px; color: var(--dim); letter-spacing: 1px; }
 .neon-text { color: var(--neon); font-weight: bold; text-shadow: 0 0 8px rgba(57, 255, 20, 0.3); }
-input, select { width: 100%; padding: 14px; margin: 10px 0; background: #222; border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 16px; }
+input, select { width: 100%; padding: 14px; margin: 10px 0; background: #222; border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
 .btn-primary { width: 100%; padding: 16px; background: var(--neon); color: #000; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; margin-top: 10px; }
 .btn-secondary { width: 100%; padding: 12px; background: #333; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; }
 table { width: 100%; border-collapse: collapse; }
