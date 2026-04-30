@@ -11,15 +11,17 @@
 </head>
 <body>
 
+    <!-- Access Control -->
     <div id="loginOverlay">
         <div class="card auth-card">
             <h2 class="neon-text">🍃 MAMA TEA HUB</h2>
-            <p style="color: #666; font-size: 12px; margin-bottom: 20px;">ENTER SYSTEM PIN</p>
+            <p style="color: #666; font-size: 12px; margin-bottom: 20px;">SYSTEM SECURE</p>
             <input type="password" id="password" placeholder="****" style="text-align: center; font-size: 24px; letter-spacing: 8px;">
-            <button class="btn-primary" onclick="handleLogin()">OPEN SYSTEM</button>
+            <button class="btn-primary" onclick="handleLogin()">ENTER</button>
         </div>
     </div>
 
+    <!-- Main Dashboard -->
     <div id="mainApp" class="container" style="display: none;">
         <header>
             <h2 class="neon-text" style="text-align: center;">MAMA TEA HUB</h2>
@@ -30,6 +32,7 @@
             </div>
         </header>
 
+        <!-- DAILY LEDGER -->
         <div id="dailySection" class="section-content">
             <div class="stat-grid">
                 <div class="stat-box"><small>TOTAL KG</small><div id="dayTotalKg" class="neon-text">0 kg</div></div>
@@ -38,29 +41,30 @@
 
             <div class="card">
                 <h3 id="formTitle">📝 Record Entry</h3>
-                <label>Select Farmer</label>
+                <label>Farmer Name</label>
                 <select id="farmerSelect"></select>
                 <label>Weight (KG)</label>
                 <input type="number" id="kgInput" step="0.1" placeholder="0.0">
-                <label>Date</label>
+                <label>Collection Date</label>
                 <input type="date" id="dateFilter">
                 <button id="saveBtn" class="btn-primary" onclick="saveRecord()">SECURE RECORD</button>
-                <button id="cancelEditBtn" class="btn-secondary" style="display:none; margin-top:10px;" onclick="cancelEdit()">CANCEL EDIT</button>
+                <button id="cancelEditBtn" class="btn-secondary" style="display:none; margin-top:10px;" onclick="cancelEdit()">CANCEL</button>
             </div>
 
             <div class="card" id="printArea">
-                <h3>📋 Daily Ledger</h3>
+                <h3>📋 Daily Log</h3>
                 <table>
                     <thead><tr><th>Farmer</th><th>KG</th><th>Time</th><th>Edit</th></tr></thead>
                     <tbody id="dailyLogBody"></tbody>
                 </table>
-                <button class="btn-secondary" style="margin-top: 15px;" onclick="takeSnapshot()">📸 SNAPSHOT</button>
+                <button class="btn-secondary" style="margin-top: 15px;" onclick="takeSnapshot()">📸 SAVE IMAGE</button>
             </div>
         </div>
 
+        <!-- MONTHLY PAYOUTS -->
         <div id="monthlySection" class="section-content" style="display:none;">
             <div class="card">
-                <h3>💰 Monthly Payouts</h3>
+                <h3>💰 Monthly Summary</h3>
                 <select id="monthSelect" onchange="loadMonthlySummary()">
                     <option value="01">January</option><option value="02">February</option>
                     <option value="03">March</option><option value="04">April</option>
@@ -70,29 +74,25 @@
                     <option value="11">November</option><option value="12">December</option>
                 </select>
                 <table>
-                    <thead><tr><th>Farmer</th><th>Total KG</th><th>Payable</th></tr></thead>
+                    <thead><tr><th>Farmer</th><th>Total KG</th><th>Earnings</th></tr></thead>
                     <tbody id="monthlyBody"></tbody>
                 </table>
             </div>
         </div>
 
+        <!-- FARMER MANAGEMENT -->
         <div id="farmersSection" class="section-content" style="display:none;">
             <div class="card">
-                <h3>➕ Add Farmer</h3>
-                <input type="text" id="newFarmerName" placeholder="Full Name">
-                <button class="btn-primary" onclick="addNewFarmer()">REGISTER</button>
+                <h3>➕ Register New Farmer</h3>
+                <input type="text" id="newFarmerName" placeholder="Enter Full Name">
+                <button class="btn-primary" onclick="addNewFarmer()">ADD TO SYSTEM</button>
             </div>
             <div id="farmerList"></div>
         </div>
 
-        <button onclick="location.reload()" class="btn-logout">Log Out</button>
+        <button onclick="location.reload()" class="btn-logout">TERMINATE SESSION</button>
     </div>
 
     <script src="script.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-    </script>
 </body>
 </html>
