@@ -1,35 +1,33 @@
-// Local Storage Persistence
-let farmers = JSON.parse(localStorage.getItem('tea_farmers')) || [];
-let records = JSON.parse(localStorage.getItem('tea_records')) || [];
+const SB_URL = 'https://ilohlmmbgwywulojiadd.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsb2hsbW1iZ3d5d3Vsb2ppYWRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.LIx-wCr_P4tcF-lw7Lo7FvCzWw2ScmpyMvlx-BgoGgY';
+const _db = supabase.createClient(SB_URL, SB_KEY);
 
-// PIN SECURITY
+// PIN LOGIN
 function checkPin() {
-    const input = document.getElementById('pinInput').value;
-    if (input === "1234") {
+    const pin = document.getElementById('pinInput').value;
+    if (pin === "1234") {
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         initApp();
     } else {
-        alert("Access Denied: Wrong PIN");
+        alert("WRONG PIN");
         document.getElementById('pinInput').value = '';
     }
 }
 
-// INITIALIZE APP
-function initApp() {
-    // Set Date
-    document.getElementById('dateFilter').value = new Date().toISOString().split('T')[0];
+// INITIALIZE
+async function initApp() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateFilter').value = today;
     
-    // Setup Month Dropdown
+    // Setup Months
     const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     const mSelect = document.getElementById('monthSelect');
     mSelect.innerHTML = months.map((m, i) => `<option value="${("0"+(i+1)).slice(-2)}">${m}</option>`).join('');
     mSelect.value = ("0" + (new Date().getMonth() + 1)).slice(-2);
 
-    updateFarmerUI();
-    loadDaily();
-    
-    // Auto-load when date changes
+    await loadFarmers();
+    await loadDaily();
     document.getElementById('dateFilter').addEventListener('change', loadDaily);
 }
 
@@ -39,89 +37,99 @@ function switchTab(e, tab) {
     document.querySelectorAll('.section-content').forEach(s => s.style.display = 'none');
     e.target.classList.add('active');
     document.getElementById(tab + 'Section').style.display = 'block';
-    
     if(tab === 'monthly') loadMonthlySummary();
-    if(tab === 'farmers') displayFarmersList();
+    if(tab === 'farmers') loadFarmers();
 }
 
-// FARMER MANAGEMENT
-function addNewFarmer() {
-    const input = document.getElementById('newFarmerName');
-    const name = input.value.trim();
-    if(!name) return alert("Enter a name");
-    
-    farmers.push(name);
-    localStorage.setItem('tea_farmers', JSON.stringify(farmers));
-    input.value = '';
-    updateFarmerUI();
-    displayFarmersList();
-    alert("Farmer added!");
+// FARMERS
+async function loadFarmers() {
+    const { data, error } = await _db.from('farmers').select('*').order('name');
+    if (data) {
+        document.getElementById('farmerSelect').innerHTML = data.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+        document.getElementById('farmerList').innerHTML = data.map(f => `<div class="card">${f.name}</div>`).join('');
+    }
 }
 
-function updateFarmerUI() {
-    const select = document.getElementById('farmerSelect');
-    select.innerHTML = farmers.map(f => `<option value="${f}">${f}</option>`).join('');
+async function addNewFarmer() {
+    const name = document.getElementById('newFarmerName').value.trim();
+    if(!name) return;
+    const { error } = await _db.from('farmers').insert([{ name }]);
+    if(error) alert(error.message);
+    else {
+        document.getElementById('newFarmerName').value = '';
+        await loadFarmers();
+        alert("Farmer Added!");
+    }
 }
 
-function displayFarmersList() {
-    const list = document.getElementById('farmerList');
-    list.innerHTML = farmers.map(f => `<div class="card" style="margin-bottom:8px; padding:12px;">${f}</div>`).join('');
-}
-
-// RECORDS LOGIC
-function saveRecord() {
-    const name = document.getElementById('farmerSelect').value;
+// RECORDS
+async function saveRecord() {
+    const fId = document.getElementById('farmerSelect').value;
     const kg = parseFloat(document.getElementById('kgInput').value);
     const date = document.getElementById('dateFilter').value;
-
-    if(!name || !kg) return alert("Select farmer and enter weight");
-
-    records.push({ id: Date.now(), name, kg, date });
-    localStorage.setItem('tea_records', JSON.stringify(records));
     
-    document.getElementById('kgInput').value = '';
-    loadDaily();
-    alert("Record Saved!");
+    if(!kg) return alert("Enter KG");
+
+    const { error } = await _db.from('daily_records').insert([{ 
+        farmer_id: fId, 
+        kg_collected: kg, 
+        date_recorded: date 
+    }]);
+
+    if(error) alert(error.message);
+    else {
+        document.getElementById('kgInput').value = '';
+        await loadDaily();
+        alert("Record Saved!");
+    }
 }
 
-function loadDaily() {
-    const day = document.getElementById('dateFilter').value;
-    const filtered = records.filter(r => r.date === day);
+async function loadDaily() {
+    const date = document.getElementById('dateFilter').value;
+    const { data } = await _db.from('daily_records')
+        .select('id, kg_collected, farmers(name)')
+        .eq('date_recorded', date);
+    
     const body = document.getElementById('dailyLogBody');
-    
-    body.innerHTML = filtered.map(r => `
+    body.innerHTML = data?.map(r => `
         <tr>
-            <td>${r.name}</td>
-            <td>${r.kg} kg</td>
-            <td><button onclick="deleteRecord(${r.id})" style="color:red; background:none; border:none; font-size:16px;">&times;</button></td>
+            <td>${r.farmers?.name || 'Unknown'}</td>
+            <td>${r.kg_collected} kg</td>
+            <td><button onclick="deleteRecord('${r.id}')" style="color:red; background:none; border:none;">&times;</button></td>
         </tr>
-    `).join('');
+    `).join('') || '';
 }
 
-function loadMonthlySummary() {
+async function loadMonthlySummary() {
     const month = document.getElementById('monthSelect').value;
-    const summary = {};
+    const year = new Date().getFullYear();
+    const start = `${year}-${month}-01`;
+    const end = `${year}-${month}-31`;
 
-    records.forEach(r => {
-        if(r.date.split('-')[1] === month) {
-            summary[r.name] = (summary[r.name] || 0) + r.kg;
-        }
+    const { data } = await _db.from('daily_records')
+        .select('kg_collected, farmers(name)')
+        .gte('date_recorded', start)
+        .lte('date_recorded', end);
+
+    const summary = {};
+    data?.forEach(r => {
+        const n = r.farmers?.name || "Unknown";
+        summary[n] = (summary[n] || 0) + r.kg_collected;
     });
 
-    const body = document.getElementById('monthlyBody');
-    body.innerHTML = Object.entries(summary).map(([name, total]) => `
+    document.getElementById('monthlyBody').innerHTML = Object.entries(summary).map(([name, kg]) => `
         <tr>
             <td>${name}</td>
-            <td>${total.toFixed(2)} kg</td>
-            <td style="color:#39ff14">Ksh ${Math.round(total * 8)}</td>
+            <td>${kg.toFixed(1)} kg</td>
+            <td class="neon-text">Ksh ${Math.round(kg * 8)}</td>
         </tr>
     `).join('');
 }
 
-function deleteRecord(id) {
-    if(confirm("Remove this entry?")) {
-        records = records.filter(r => r.id !== id);
-        localStorage.setItem('tea_records', JSON.stringify(records));
+async function deleteRecord(id) {
+    if(confirm("Delete record?")) {
+        await _db.from('daily_records').delete().eq('id', id);
         loadDaily();
     }
-                  }
+}
+
