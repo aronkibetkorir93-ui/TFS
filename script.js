@@ -185,3 +185,27 @@ async function loadMonthlySummary() {
         `).join('');
     }
 }
+
+
+
+function downloadAsImage(elementId, fileName) {
+    const element = document.getElementById(elementId);
+    
+    // This makes the image look better (hides buttons before taking the photo)
+    const buttons = element.querySelectorAll('button');
+    buttons.forEach(btn => btn.style.visibility = 'hidden');
+
+    html2canvas(element, {
+        backgroundColor: "#121212", // Matches your dark theme
+        scale: 2, // Makes the image clear/high quality
+    }).then(canvas => {
+        // Show buttons again after photo is taken
+        buttons.forEach(btn => btn.style.visibility = 'visible');
+
+        const link = document.createElement('a');
+        link.download = `${fileName}_${new Date().toLocaleDateString()}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
+}
+
