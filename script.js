@@ -150,12 +150,12 @@ async function loadMonthlySummary() {
     const month = document.getElementById('monthSelect').value;
     const year = new Date().getFullYear();
     
-    // Improved date logic to handle end of month correctly
+    // 1. Define the full range of the month
     const start = `${year}-${month}-01`;
-    // Using 31 is risky for Feb/April; Supabase handles YYYY-MM-DD comparisons well:
-    const lastDay = new Date(year, month, 0).getDate(); 
+    const lastDay = new Date(year, parseInt(month), 0).getDate(); 
     const end = `${year}-${month}-${lastDay}`;
 
+    // 2. Fetch ALL records for this month range
     const { data, error } = await _db.from('daily_records')
         .select('kg_collected, farmers(name)')
         .gte('date_recorded', start)
@@ -166,25 +166,45 @@ async function loadMonthlySummary() {
         return;
     }
 
+    // 3. THE ACCUMULATOR
     const summary = {};
+    
     data?.forEach(r => {
-        const n = r.farmers?.name || "Unknown";
-        summary[n] = (summary[n] || 0) + r.kg_collected;
+        const name = r.farmers?.name || "Unknown";
+        const weight = parseFloat(r.kg_collected) || 0;
+
+        // If the farmer already has a total, add the new weight to it.
+        // If they don't exist in the list yet, start them at 0 then add.
+        if (summary[name]) {
+            summary[name] += weight; 
+        } else {
+            summary[name] = weight;
+        }
     });
 
+    // 4. DISPLAY THE TOTALS
     const body = document.getElementById('monthlyBody');
-    if (Object.keys(summary).length === 0) {
-        body.innerHTML = '<tr><td colspan="3" style="text-align:center;">No records for this month</td></tr>';
-    } else {
-        body.innerHTML = Object.entries(summary).map(([name, kg]) => `
-            <tr>
-                <td>${name}</td>
-                <td>${kg.toFixed(1)} kg</td>
-                <td class="neon-text">Ksh ${Math.round(kg * 8)}</td>
+    body.innerHTML = Object.entries(summary).map(([name, totalKg]) => `
+        <tr>
+            <td>${name}</td>
+            <td><strong>${totalKg.toFixed(1)} kg</strong></td>
+            <td class="neon-text">Ksh ${Math.round(totalKg * 8)}</td>
+        </tr>
+    `).join('');
+    
+    // 5. ADD A GRAND TOTAL ROW (Optional but helpful)
+    const grandTotal = Object.values(summary).reduce((a, b) => a + b, 0);
+    if (grandTotal > 0) {
+        body.innerHTML += `
+            <tr style="border-top: 2px solid #333; background: #111;">
+                <td><strong>TOTAL HUB</strong></td>
+                <td><strong>${grandTotal.toFixed(1)} kg</strong></td>
+                <td style="color: #0f0;"><strong>Ksh ${Math.round(grandTotal * 8)}</strong></td>
             </tr>
-        `).join('');
+        `;
     }
 }
+
 
 
 
