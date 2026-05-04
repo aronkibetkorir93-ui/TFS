@@ -41,12 +41,21 @@ function switchTab(e, tab) {
     if(tab === 'farmers') loadFarmers();
 }
 
-// FARMERS
+// --- FARMER MANAGEMENT (UPDATED: Added Delete & Edit) ---
 async function loadFarmers() {
     const { data, error } = await _db.from('farmers').select('*').order('name');
     if (data) {
         document.getElementById('farmerSelect').innerHTML = data.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
-        document.getElementById('farmerList').innerHTML = data.map(f => `<div class="card">${f.name}</div>`).join('');
+        // Added Delete and Edit buttons to the farmer list
+        document.getElementById('farmerList').innerHTML = data.map(f => `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>${f.name}</span>
+                <div>
+                    <button onclick="editFarmer('${f.id}', '${f.name}')" style="color:cyan; background:none; border:none; margin-right:10px;">EDIT</button>
+                    <button onclick="deleteFarmer('${f.id}')" style="color:red; background:none; border:none;">DELETE</button>
+                </div>
+            </div>
+        `).join('');
     }
 }
 
@@ -62,7 +71,24 @@ async function addNewFarmer() {
     }
 }
 
-// RECORDS
+async function deleteFarmer(id) {
+    if(confirm("Delete this farmer? This may affect their past records.")) {
+        const { error } = await _db.from('farmers').delete().eq('id', id);
+        if(error) alert(error.message);
+        else loadFarmers();
+    }
+}
+
+async function editFarmer(id, oldName) {
+    const newName = prompt("Edit Farmer Name:", oldName);
+    if(newName && newName !== oldName) {
+        const { error } = await _db.from('farmers').update({ name: newName }).eq('id', id);
+        if(error) alert(error.message);
+        else loadFarmers();
+    }
+}
+
+// --- RECORDS MANAGEMENT (UPDATED: Added Edit KG) ---
 async function saveRecord() {
     const fId = document.getElementById('farmerSelect').value;
     const kg = parseFloat(document.getElementById('kgInput').value);
@@ -95,35 +121,21 @@ async function loadDaily() {
         <tr>
             <td>${r.farmers?.name || 'Unknown'}</td>
             <td>${r.kg_collected} kg</td>
-            <td><button onclick="deleteRecord('${r.id}')" style="color:red; background:none; border:none;">&times;</button></td>
+            <td>
+                <button onclick="editRecord('${r.id}', ${r.kg_collected})" style="color:cyan; background:none; border:none; margin-right:10px;">✎</button>
+                <button onclick="deleteRecord('${r.id}')" style="color:red; background:none; border:none;">&times;</button>
+            </td>
         </tr>
     `).join('') || '';
 }
 
-async function loadMonthlySummary() {
-    const month = document.getElementById('monthSelect').value;
-    const year = new Date().getFullYear();
-    const start = `${year}-${month}-01`;
-    const end = `${year}-${month}-31`;
-
-    const { data } = await _db.from('daily_records')
-        .select('kg_collected, farmers(name)')
-        .gte('date_recorded', start)
-        .lte('date_recorded', end);
-
-    const summary = {};
-    data?.forEach(r => {
-        const n = r.farmers?.name || "Unknown";
-        summary[n] = (summary[n] || 0) + r.kg_collected;
-    });
-
-    document.getElementById('monthlyBody').innerHTML = Object.entries(summary).map(([name, kg]) => `
-        <tr>
-            <td>${name}</td>
-            <td>${kg.toFixed(1)} kg</td>
-            <td class="neon-text">Ksh ${Math.round(kg * 8)}</td>
-        </tr>
-    `).join('');
+async function editRecord(id, oldKg) {
+    const newKg = prompt("Edit Weight (KG):", oldKg);
+    if(newKg !== null && newKg !== "") {
+        const { error } = await _db.from('daily_records').update({ kg_collected: parseFloat(newKg) }).eq('id', id);
+        if(error) alert(error.message);
+        else loadDaily();
+    }
 }
 
 async function deleteRecord(id) {
@@ -133,3 +145,43 @@ async function deleteRecord(id) {
     }
 }
 
+// --- MONTHLY SUMMARY (UPDATED: Fixed Date Range Logic) ---
+async function loadMonthlySummary() {
+    const month = document.getElementById('monthSelect').value;
+    const year = new Date().getFullYear();
+    
+    // Improved date logic to handle end of month correctly
+    const start = `${year}-${month}-01`;
+    // Using 31 is risky for Feb/April; Supabase handles YYYY-MM-DD comparisons well:
+    const lastDay = new Date(year, month, 0).getDate(); 
+    const end = `${year}-${month}-${lastDay}`;
+
+    const { data, error } = await _db.from('daily_records')
+        .select('kg_collected, farmers(name)')
+        .gte('date_recorded', start)
+        .lte('date_recorded', end);
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    const summary = {};
+    data?.forEach(r => {
+        const n = r.farmers?.name || "Unknown";
+        summary[n] = (summary[n] || 0) + r.kg_collected;
+    });
+
+    const body = document.getElementById('monthlyBody');
+    if (Object.keys(summary).length === 0) {
+        body.innerHTML = '<tr><td colspan="3" style="text-align:center;">No records for this month</td></tr>';
+    } else {
+        body.innerHTML = Object.entries(summary).map(([name, kg]) => `
+            <tr>
+                <td>${name}</td>
+                <td>${kg.toFixed(1)} kg</td>
+                <td class="neon-text">Ksh ${Math.round(kg * 8)}</td>
+            </tr>
+        `).join('');
+    }
+}
